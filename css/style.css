@@ -1,0 +1,234 @@
+/* Frená — la idea es que la pantalla se sienta tranquila.
+   Nada que parpadee, nada que apure: todo lo contrario a una tienda. */
+
+:root{
+  --fondo:#0f1520;
+  --panel:#182232;
+  --panel2:#1f2b3d;
+  --borde:#27354a;
+  --texto:#e9eff7;
+  --tenue:#8b9bb2;
+  --verde:#2fd39b;
+  --verde-hondo:#12694f;
+  --sigo:#3c4c66;
+}
+
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html,body{ height:100%; }
+
+body{
+  margin:0;
+  background:var(--fondo);
+  color:var(--texto);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:calc(64px + env(safe-area-inset-bottom));
+  overscroll-behavior:none;
+}
+
+.oculto{ display:none !important; }
+
+.pantalla{
+  max-width:520px;
+  margin:0 auto;
+  padding:calc(14px + env(safe-area-inset-top)) 18px 18px;
+  /* menos la barra de abajo, si no el último botón queda tapado */
+  min-height:calc(100vh - 64px - env(safe-area-inset-bottom));
+  min-height:calc(100dvh - 64px - env(safe-area-inset-bottom));
+  display:flex;
+  flex-direction:column;
+}
+
+/* ---------- cabecera ---------- */
+.cab{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:18px;
+}
+.marca{ display:flex; align-items:center; gap:9px; font-weight:700; letter-spacing:.2px; }
+.pausa-ico{
+  width:15px; height:17px; display:inline-block; position:relative;
+}
+.pausa-ico::before,.pausa-ico::after{
+  content:""; position:absolute; top:0; width:5px; height:17px;
+  border-radius:2px; background:var(--verde);
+}
+.pausa-ico::before{ left:0; }
+.pausa-ico::after{ right:0; }
+
+.instalar{
+  border:1px solid var(--verde); background:transparent; color:var(--verde);
+  border-radius:999px; padding:7px 15px; font-size:13px; font-weight:600;
+  cursor:pointer;
+}
+
+/* ---------- la pausa ---------- */
+.veces{
+  margin:0 0 6px; font-size:13px; color:var(--tenue); min-height:20px;
+}
+.pregunta{
+  margin:0; font-size:27px; line-height:1.25; font-weight:700;
+  letter-spacing:-.4px;
+}
+.repregunta{
+  margin:12px 0 0; color:var(--tenue); font-size:16px; min-height:24px;
+}
+
+.reloj{
+  position:relative; width:150px; height:150px; margin:26px auto 22px;
+  display:grid; place-items:center;
+}
+.reloj svg{ position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg); }
+.reloj circle{ fill:none; stroke-width:6; }
+.pista{ stroke:var(--borde); }
+.aro{
+  stroke:var(--verde); stroke-linecap:round;
+  transition:stroke .4s ease;
+}
+.segundos{ font-size:42px; font-weight:700; font-variant-numeric:tabular-nums; }
+.reloj.fin .aro{ stroke:var(--verde-hondo); }
+.reloj.fin .segundos{ font-size:34px; color:var(--verde); }
+
+/* ---------- campos ---------- */
+.campos{ display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+.campos input,.caja-otra input,.select{
+  width:100%; background:var(--panel); color:var(--texto);
+  border:1px solid var(--borde); border-radius:13px;
+  padding:14px 15px; font-size:16px; font-family:inherit;
+}
+.campos input::placeholder,.caja-otra input::placeholder{ color:#66748a; }
+.campos input:focus,.caja-otra input:focus,.select:focus{
+  outline:none; border-color:var(--verde);
+}
+.monto{ position:relative; display:block; }
+.monto .signo{
+  position:absolute; left:15px; top:50%; transform:translateY(-50%);
+  color:var(--tenue); font-size:16px; pointer-events:none;
+}
+.monto input{ padding-left:30px; }
+
+/* ---------- botones ---------- */
+.acciones{ margin-top:auto; display:flex; flex-direction:column; gap:10px; }
+
+.btn-no,.btn-si,.btn-peligro{
+  width:100%; border:none; border-radius:15px; padding:17px;
+  font-size:17px; font-weight:700; font-family:inherit; cursor:pointer;
+}
+.btn-no{ background:var(--verde); color:#06281d; }
+.btn-no:active{ background:#26b184; }
+
+.btn-si{
+  background:var(--sigo); color:var(--texto); font-weight:600; font-size:16px;
+}
+.btn-si:disabled{ background:#222d3e; color:#5b6a80; cursor:default; }
+.btn-si:not(:disabled):active{ background:#4a5d7c; }
+
+.btn-peligro{ background:transparent; color:#e2705f; border:1px solid #4a2b28; }
+
+.btn-texto{
+  background:none; border:none; color:var(--tenue); font:inherit;
+  font-size:14px; padding:14px; cursor:pointer; text-decoration:underline;
+  text-underline-offset:3px;
+}
+
+/* ---------- pantallas de resultado ---------- */
+.centrado{
+  margin:auto 0; display:flex; flex-direction:column; align-items:center;
+  text-align:center; gap:2px;
+}
+.centrado .pregunta{ font-size:25px; }
+.centrado .btn-si{ margin-top:22px; }
+.grande{ font-size:58px; line-height:1; margin-bottom:14px; }
+
+/* ---------- registro ---------- */
+.tarjetas{
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;
+}
+.tarjeta{
+  background:var(--panel); border:1px solid var(--borde); border-radius:15px;
+  padding:16px;
+}
+.tarjeta b{ display:block; font-size:25px; letter-spacing:-.5px; }
+.tarjeta small{ color:var(--tenue); font-size:12.5px; }
+.destacada{
+  grid-column:1 / -1;
+  background:linear-gradient(135deg,#16543f,#123b4e);
+  border-color:#1f7a5c;
+}
+.destacada b{ font-size:36px; color:var(--verde); }
+
+.titulillo{
+  font-size:13px; text-transform:uppercase; letter-spacing:1.4px;
+  color:var(--tenue); margin:26px 0 10px; font-weight:600;
+}
+.micro{ font-size:13.5px; color:var(--tenue); margin:8px 0; }
+.centro{ text-align:center; }
+
+.historial{ list-style:none; margin:0; padding:0; }
+.historial li{
+  display:flex; align-items:center; gap:12px;
+  padding:12px 2px; border-bottom:1px solid var(--borde);
+}
+.historial .ico{ font-size:19px; width:24px; text-align:center; }
+.historial .qué{ flex:1; min-width:0; }
+.historial .qué b{ display:block; font-weight:600; font-size:15px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.historial .qué small{ color:var(--tenue); font-size:12.5px; }
+.historial .plata{ font-variant-numeric:tabular-nums; font-weight:600; }
+.historial .plata.ok{ color:var(--verde); }
+.vacio{ color:var(--tenue); font-size:14px; padding:14px 0; }
+
+/* ---------- ajustes ---------- */
+.fila{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  background:var(--panel); border:1px solid var(--borde); border-radius:13px;
+  padding:13px 15px; margin-bottom:10px;
+}
+.fila > span{ display:flex; flex-direction:column; font-size:15px; }
+.fila small{ color:var(--tenue); font-size:12.5px; }
+.fila input[type=range]{ flex:1; max-width:170px; accent-color:var(--verde); }
+.fila input[type=checkbox]{ width:20px; height:20px; accent-color:var(--verde); }
+
+.caja-otra{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+
+.guia{
+  background:var(--panel); border:1px solid var(--borde); border-radius:13px;
+  padding:13px 15px; margin-bottom:10px;
+}
+.guia summary{ cursor:pointer; font-weight:600; }
+.guia ol{ margin:12px 0 2px; padding-left:20px; color:var(--tenue);
+  font-size:14.5px; }
+.guia li{ margin-bottom:9px; }
+.guia b{ color:var(--texto); }
+.link{
+  display:block; margin-top:6px; padding:9px 11px; background:var(--panel2);
+  border-radius:9px; font-size:13px; word-break:break-all; color:var(--verde);
+}
+
+/* ---------- barra de abajo ---------- */
+.barra{
+  position:fixed; left:0; right:0; bottom:0; z-index:5;
+  display:flex; background:rgba(15,21,32,.94);
+  border-top:1px solid var(--borde);
+  padding-bottom:env(safe-area-inset-bottom);
+  backdrop-filter:blur(10px);
+}
+.tab{
+  flex:1; background:none; border:none; color:var(--tenue);
+  font:inherit; font-size:19px; padding:9px 0 8px; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+}
+.tab small{ font-size:11px; }
+.tab.activa{ color:var(--verde); }
+
+/* ---------- aviso ---------- */
+.aviso{
+  position:fixed; left:50%; bottom:calc(76px + env(safe-area-inset-bottom));
+  transform:translateX(-50%); z-index:9;
+  background:var(--panel2); border:1px solid var(--borde);
+  border-radius:11px; padding:11px 16px; font-size:14px;
+  max-width:90vw; text-align:center;
+}
+
+@media (min-width:560px){
+  .pregunta{ font-size:31px; }
+}

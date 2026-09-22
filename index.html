@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frená — ¿seguro que lo querés?</title>
+<meta name="theme-color" content="#0f1520">
+<meta name="description" content="Una pausa antes de comprar. Cuenta cuántas veces entrás a Mercado Pago y te pregunta si realmente querés lo que vas a comprar.">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<!-- iOS: para que se abra como app desde la pantalla de inicio -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Frená">
+</head>
+<body>
+
+<!-- ================= LA PAUSA ================= -->
+<section class="pantalla" data-p="pausa">
+  <header class="cab">
+    <span class="marca"><span class="pausa-ico"></span> Frená</span>
+    <button id="instalarBtn" class="instalar oculto">Instalar</button>
+  </header>
+
+  <p id="vecesHoy" class="veces"></p>
+
+  <h1 class="pregunta">¿Realmente querés lo que vas a comprar?</h1>
+  <p id="repregunta" class="repregunta"></p>
+
+  <div id="reloj" class="reloj">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <circle class="pista" cx="60" cy="60" r="54"></circle>
+      <circle id="aro" class="aro" cx="60" cy="60" r="54"></circle>
+    </svg>
+    <span id="segundos" class="segundos">15</span>
+  </div>
+
+  <div class="campos">
+    <input id="que" type="text" autocomplete="off" placeholder="¿Qué ibas a comprar?">
+    <label id="montoCaja" class="monto">
+      <span class="signo">$</span>
+      <input id="monto" type="text" inputmode="numeric" autocomplete="off" placeholder="¿Cuánto sale?">
+    </label>
+  </div>
+
+  <div class="acciones">
+    <button id="frenoBtn" class="btn-no">No, lo dejo pasar</button>
+    <button id="sigoBtn" class="btn-si" disabled>Esperá…</button>
+  </div>
+</section>
+
+<!-- ================= FRENASTE ================= -->
+<section class="pantalla oculto" data-p="frenaste">
+  <div class="centrado">
+    <span class="grande">✋</span>
+    <h1 class="pregunta">Listo, lo dejaste pasar.</h1>
+    <p id="frenasteTexto" class="repregunta"></p>
+    <p id="frenasteTotal" class="micro"></p>
+    <button id="alRegistroBtn" class="btn-si">Ver el registro</button>
+    <button id="deNuevoBtn" class="btn-texto">Volver a la pausa</button>
+  </div>
+</section>
+
+<!-- ================= GRACIA ================= -->
+<section class="pantalla oculto" data-p="gracia">
+  <div class="centrado">
+    <span class="grande">✓</span>
+    <h1 class="pregunta">Seguí tranquilo.</h1>
+    <p class="repregunta">Ya pasaste por la pausa recién. No te vuelvo a
+      preguntar hasta dentro de <b id="graciaMin">10</b> minutos.</p>
+    <button id="volverBtn" class="btn-si">Volver a la app</button>
+    <button id="preguntarIgual" class="btn-texto">Preguntame igual</button>
+  </div>
+</section>
+
+<!-- ================= REGISTRO ================= -->
+<section class="pantalla oculto" data-p="registro">
+  <header class="cab"><span class="marca">Tu registro</span></header>
+
+  <div class="tarjetas">
+    <div class="tarjeta destacada">
+      <b id="stAhorro">$0</b>
+      <small>que no gastaste</small>
+    </div>
+    <div class="tarjeta">
+      <b id="stFrenadas">0</b>
+      <small>veces que frenaste</small>
+    </div>
+    <div class="tarjeta">
+      <b id="stSeguidas">0</b>
+      <small>veces que seguiste</small>
+    </div>
+    <div class="tarjeta">
+      <b id="stAperturas">0</b>
+      <small>veces que entraste</small>
+    </div>
+  </div>
+
+  <p id="stSemana" class="micro centro"></p>
+
+  <h2 class="titulillo">Las últimas</h2>
+  <ul id="historial" class="historial"></ul>
+</section>
+
+<!-- ================= AJUSTES ================= -->
+<section class="pantalla oculto" data-p="ajustes">
+  <header class="cab"><span class="marca">Ajustes</span></header>
+
+  <label class="fila">
+    <span>Segundos de espera<small id="valSegundos">15 s</small></span>
+    <input id="cfgSegundos" type="range" min="3" max="60" step="1">
+  </label>
+
+  <label class="fila">
+    <span>Minutos de gracia<small id="valGracia">10 min</small></span>
+    <input id="cfgGracia" type="range" min="0" max="60" step="5">
+  </label>
+  <p class="micro">Después de decir que sí no te vuelve a preguntar por ese
+    rato. Sin esto, cuando la app salta sola, se te repite en bucle.</p>
+
+  <label class="fila">
+    <span>Preguntar cuánto sale</span>
+    <input id="cfgMonto" type="checkbox">
+  </label>
+
+  <h2 class="titulillo">¿Qué app abre?</h2>
+  <select id="cfgDestino" class="select">
+    <option value="mercadopago">Mercado Pago</option>
+    <option value="mercadolibre">Mercado Libre</option>
+    <option value="otra">Otra app</option>
+  </select>
+
+  <div id="cajaOtra" class="caja-otra oculto">
+    <input id="cfgNombre" type="text" placeholder="Nombre (sale en el botón)">
+    <input id="cfgPaquete" type="text" autocapitalize="off" autocomplete="off" placeholder="Paquete Android — ej: com.mercadopago.wallet">
+    <input id="cfgEnlace" type="text" autocapitalize="off" autocomplete="off" placeholder="Link o esquema — ej: modo:// o https://…">
+  </div>
+  <button id="probarBtn" class="btn-texto">Probar el botón</button>
+
+  <h2 class="titulillo">Que salte solo al abrir Mercado Pago</h2>
+  <p class="micro">Esta app sola no puede espiar qué otras apps abrís — ningún
+    sitio web puede, y está bien que sea así. Lo que sí se puede es que el
+    celular la abra automáticamente. Se configura una vez:</p>
+
+  <details class="guia">
+    <summary>🤖 Android</summary>
+    <ol>
+      <li>Instalá <b>MacroDroid</b> de la Play Store (es gratis).</li>
+      <li><b>Agregar macro</b> → Disparador → <b>Aplicaciones</b> →
+        «Aplicación iniciada/cerrada» → elegí <b>Mercado Pago</b> → Iniciada.</li>
+      <li>Acción → Aplicaciones → <b>Abrir sitio web</b> → pegá:
+        <code class="link" id="linkAndroid"></code></li>
+      <li>Guardala y dale el permiso de <b>accesibilidad</b> que te pide
+        (lo necesita para saber qué app se abrió).</li>
+    </ol>
+  </details>
+
+  <details class="guia">
+    <summary>🍎 iPhone</summary>
+    <ol>
+      <li>Abrí <b>Atajos</b> (viene con el iPhone) → pestaña
+        <b>Automatización</b> → <b>+</b>.</li>
+      <li>Elegí <b>App</b> → Mercado Pago → <b>Se abre</b> →
+        <b>Ejecutar inmediatamente</b>.</li>
+      <li><b>Nueva automatización en blanco</b> → Añadir acción →
+        <b>Abrir URL</b> → pegá:
+        <code class="link" id="linkIos"></code></li>
+      <li>Listo.</li>
+    </ol>
+  </details>
+
+  <button id="copiarLink" class="btn-texto">Copiar el link de la app</button>
+
+  <h2 class="titulillo">Tus datos</h2>
+  <p class="micro">Todo se guarda <b>solo en este celular</b>. Lo que ibas a
+    comprar y cuánta plata manejás no sale de acá: no hay servidor, no hay
+    cuenta, no se sincroniza.</p>
+  <button id="borrarBtn" class="btn-peligro">Borrar todo el registro</button>
+</section>
+
+<!-- ================= BARRA ================= -->
+<nav class="barra">
+  <button class="tab activa" data-tab="pausa">✋<small>Pausa</small></button>
+  <button class="tab" data-tab="registro">📊<small>Registro</small></button>
+  <button class="tab" data-tab="ajustes">⚙️<small>Ajustes</small></button>
+</nav>
+
+<div id="aviso" class="aviso oculto"></div>
+
+<script src="js/datos.js"></script>
+<script src="js/registro.js"></script>
+<script src="js/app.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

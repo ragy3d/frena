@@ -47,11 +47,20 @@ const App = (function(){
 
   /* Abrir otra app desde el navegador no tiene una forma única: en Android va
      por intent://, en iPhone por el esquema propio de la app. Si no hay con
-     qué, queda el sitio web. */
+     qué, queda el sitio web.
+
+     En Android, un intent que sólo lleva "package" y ninguna acción no hace
+     match con nada del manifest de la app instalada — casi ningún componente
+     escucha un ACTION_VIEW sin datos. Chrome entonces no encuentra la app y
+     va directo al fallback: por eso llegabas al sitio web y no a la app de
+     verdad. Pidiendo MAIN + LAUNCHER se apunta directo a la pantalla
+     principal de la app, que es lo que cualquier app instalada declara. */
   function urlDeSalto(android){
     const d = destino();
     if(android && d.paquete){
-      let u = "intent://#Intent;package=" + d.paquete + ";";
+      let u = "intent:#Intent;package=" + d.paquete +
+              ";action=android.intent.action.MAIN" +
+              ";category=android.intent.category.LAUNCHER;";
       if(d.web) u += "S.browser_fallback_url=" + encodeURIComponent(d.web) + ";";
       return u + "end";
     }
@@ -67,8 +76,9 @@ const App = (function(){
     const antes = Date.now();
     location.href = u;
 
-    // en iPhone, si el esquema no abre nada seguimos acá: queda el sitio web
-    if(!android && d.esquema && d.web){
+    // si en un segundo y medio seguimos en esta pestaña, no pasó nada:
+    // probamos con el sitio web como último recurso
+    if(d.web && u !== d.web){
       setTimeout(function(){
         if(!document.hidden && Date.now() - antes < 2600) location.href = d.web;
       }, 1500);

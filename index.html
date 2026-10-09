@@ -25,6 +25,7 @@
   </header>
 
   <p id="vecesHoy" class="veces"></p>
+  <p id="alertaLugar" class="alerta-lugar oculto"></p>
 
   <h1 class="pregunta">¿Realmente querés lo que vas a comprar?</h1>
   <p id="repregunta" class="repregunta"></p>
@@ -44,6 +45,10 @@
       <input id="monto" type="text" inputmode="numeric" autocomplete="off" placeholder="¿Cuánto sale?">
     </label>
   </div>
+
+  <p class="micro">¿Cómo andabas? <small>(opcional, un toque)</small></p>
+  <div id="humores" class="humores"></div>
+  <p id="planB" class="plan-b oculto"></p>
 
   <div class="acciones">
     <button id="frenoBtn" class="btn-no">No, lo dejo pasar</button>
@@ -99,6 +104,21 @@
   </div>
 
   <p id="stSemana" class="micro centro"></p>
+  <p id="stMes" class="micro centro"></p>
+
+  <div id="presupuestoCaja" class="presupuesto oculto">
+    <div class="presupuesto-cab">
+      <span>Presupuesto de gustos</span>
+      <b id="presupuestoTexto"></b>
+    </div>
+    <div class="barra-presupuesto"><div id="presupuestoBarra"></div></div>
+    <small id="presupuestoAviso" class="presupuesto-aviso"></small>
+  </div>
+
+  <div id="patronCaja" class="patron oculto">
+    <span class="patron-ico">🔎</span>
+    <p id="patronTexto"></p>
+  </div>
 
   <h2 class="titulillo">Las últimas</h2>
   <ul id="historial" class="historial"></ul>
@@ -124,6 +144,29 @@
     <span>Preguntar cuánto sale</span>
     <input id="cfgMonto" type="checkbox">
   </label>
+
+  <h2 class="titulillo">Presupuesto semanal de gustos</h2>
+  <p class="micro">Un monto para comprar cosas en la calle durante la semana.
+    Al llegar a cero, el aviso en Registro se pone más insistente. Dejalo en
+    0 para apagarlo.</p>
+  <label class="monto ajuste-monto">
+    <span class="signo">$</span>
+    <input id="cfgPresupuesto" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+  </label>
+
+  <h2 class="titulillo">Lugares donde se te escapa la plata</h2>
+  <p class="micro">Guardá el kiosco, la panadería o donde sea que siempre
+    caés. Cuando abras Frená cerca de ahí, te avisa — siempre y cuando ya le
+    hayas dado el permiso de ubicación. <b>Frená no puede avisarte caminando
+    con la app cerrada</b>: ningún sitio web puede hacer eso, sólo revisa
+    dónde estás cada vez que la abrís. Y la ubicación no sale de este
+    celular: no hay servidor, no se manda a ningún lado.</p>
+
+  <div class="agregar-lugar">
+    <input id="nombreLugar" type="text" autocomplete="off" placeholder="Nombre del lugar — ej: Kiosco de la esquina">
+    <button id="agregarLugarBtn" class="btn-texto">📍 Guardar este lugar, estando ahí</button>
+  </div>
+  <ul id="listaLugares" class="lugares"></ul>
 
   <h2 class="titulillo">¿Qué app abre?</h2>
   <select id="cfgDestino" class="select">

@@ -61,6 +61,14 @@ const UI = (function(){
         (r.semanaFrenadas === 1 ? " compra" : " compras") +
         (r.semanaAhorro > 0 ? " — " + App.plata(r.semanaAhorro) : "") + ".";
 
+    $("stMes").textContent = r.mesAhorro > 0
+      ? "Este mes ahorraste " + App.plata(r.mesAhorro) + ", en " + r.mesFrenadas +
+        (r.mesFrenadas === 1 ? " vez." : " veces.")
+      : "";
+
+    pintarPresupuesto(r);
+    pintarPatrones();
+
     const lista = $("historial");
     const h = Registro.historial();
     if(!h.length){
@@ -81,8 +89,10 @@ const UI = (function(){
       caja.className = "qué";
       const b = document.createElement("b");
       b.textContent = r.que || (freno ? "Lo dejaste pasar" : "Seguiste");
+      const h = HUMORES.find(x => x.id === r.humor);
       const s = document.createElement("small");
-      s.textContent = cuando(r.t) + (freno ? "" : " · seguiste");
+      s.textContent = cuando(r.t) + (freno ? "" : " · seguiste") +
+        (h ? " · " + h.emoji + " " + h.texto.toLowerCase() : "");
       caja.appendChild(b); caja.appendChild(s);
 
       const plata = document.createElement("span");
@@ -91,6 +101,68 @@ const UI = (function(){
 
       li.appendChild(ico); li.appendChild(caja); li.appendChild(plata);
       lista.appendChild(li);
+    });
+  }
+
+  function pintarPresupuesto(r){
+    const caja = $("presupuestoCaja");
+    if(r.presupuesto <= 0){ caja.classList.add("oculto"); return; }
+    caja.classList.remove("oculto");
+
+    const pct = Math.min(100, Math.round((r.gastadoSemana / r.presupuesto) * 100));
+    $("presupuestoTexto").textContent = App.plata(r.gastadoSemana) + " de " + App.plata(r.presupuesto);
+    $("presupuestoBarra").style.width = pct + "%";
+
+    const agotado = r.restaPresupuesto <= 0;
+    $("presupuestoBarra").classList.toggle("lleno", agotado);
+    caja.classList.toggle("agotado", agotado);
+    $("presupuestoAviso").textContent = agotado
+      ? "Ya usaste todo el presupuesto de la semana. Lo que sigue sale de otro lado."
+      : "Te quedan " + App.plata(r.restaPresupuesto) + " para esta semana.";
+  }
+
+  function pintarPatrones(){
+    const caja = $("patronCaja");
+    const ph = Registro.patronHumor();
+    const pf = Registro.patronFranja();
+    if(!ph && !pf){ caja.classList.add("oculto"); return; }
+
+    const partes = [];
+    if(ph){
+      const h = HUMORES.find(x => x.id === ph.valor);
+      partes.push("seguido comprás estando " + (h ? h.texto.toLowerCase() : ph.valor) +
+        " (" + ph.cuenta + " de las últimas " + ph.total + " veces)");
+    }
+    if(pf){
+      partes.push("se repite " + pf.valor + " (" + pf.cuenta + " de " + pf.total + " veces)");
+    }
+    caja.classList.remove("oculto");
+    $("patronTexto").textContent = "Se nota un patrón: " + partes.join(", y también ") + ".";
+  }
+
+  /* ---------- lugares ---------- */
+
+  function pintarLugares(){
+    const ul = $("listaLugares");
+    const ls = Registro.listarLugares();
+    if(!ls.length){
+      ul.innerHTML = '<li class="vacio">Todavía no guardaste ningún lugar.</li>';
+      return;
+    }
+    ul.innerHTML = "";
+    ls.forEach(function(l){
+      const li = document.createElement("li");
+      const span = document.createElement("span");
+      span.textContent = "📍 " + l.nombre;
+      const btn = document.createElement("button");
+      btn.className = "borrar-lugar";
+      btn.textContent = "✕";
+      btn.onclick = function(){
+        Registro.borrarLugar(l.id);
+        pintarLugares();
+      };
+      li.appendChild(span); li.appendChild(btn);
+      ul.appendChild(li);
     });
   }
 
@@ -107,6 +179,7 @@ const UI = (function(){
     $("cfgGracia").value = c.gracia;
     $("valGracia").textContent = c.gracia === 0 ? "sin gracia" : c.gracia + " min";
     $("cfgMonto").checked = !!c.preguntarMonto;
+    $("cfgPresupuesto").value = c.presupuestoSemanal || "";
     $("cfgDestino").value = c.destino;
     $("cfgNombre").value = c.nombre || "";
     $("cfgPaquete").value = c.paquete || "";
@@ -114,6 +187,7 @@ const UI = (function(){
     $("cajaOtra").classList.toggle("oculto", c.destino !== "otra");
     $("linkAndroid").textContent = enlaceApp();
     $("linkIos").textContent = enlaceApp();
+    pintarLugares();
   }
 
   function atarAjustes(){
@@ -129,6 +203,28 @@ const UI = (function(){
     };
     $("cfgMonto").onchange = function(){
       Registro.guardarCfg({ preguntarMonto: this.checked });
+    };
+    $("cfgPresupuesto").oninput = function(){
+      const v = parseInt(String(this.value).replace(/\D/g, ""), 10);
+      Registro.guardarCfg({ presupuestoSemanal: isFinite(v) ? v : 0 });
+    };
+    $("agregarLugarBtn").onclick = function(){
+      const nombre = $("nombreLugar").value.trim();
+      if(!nombre){ avisar("Primero ponele un nombre."); return; }
+      const btn = this;
+      btn.disabled = true;
+      btn.textContent = "Ubicando…";
+      App.agregarLugarAqui(nombre, function(){
+        $("nombreLugar").value = "";
+        pintarLugares();
+        avisar("Guardado. Te avisa cuando vuelvas a pasar cerca.");
+        btn.disabled = false;
+        btn.textContent = "📍 Guardar este lugar, estando ahí";
+      }, function(mensaje){
+        avisar(mensaje);
+        btn.disabled = false;
+        btn.textContent = "📍 Guardar este lugar, estando ahí";
+      });
     };
     $("cfgDestino").onchange = function(){
       Registro.guardarCfg({ destino: this.value });

@@ -42,6 +42,39 @@ Instagram — ahí no aparece la opción de instalar.
    te vuelve a frenar — si no, cuando la automatización dispara de nuevo al
    volver a abrir Mercado Pago, quedarías en un bucle.
 
+En el medio podés tocar, en un toque, **cómo andabas** (aburrido, cansado,
+ansioso, con hambre) — queda anotado junto con la compra, sin que frene nada.
+Si tocás «Hambre» aparece un Plan B: llevar algo para picar (una fruta, unos
+frutos secos) para cuando el antojo te agarra con las manos vacías.
+
+## Presupuesto de gustos
+
+En **Ajustes** podés ponerte un monto semanal para comprar cosas en la
+calle. En **Registro** ves cuánto te queda; cuando llega a cero, el aviso se
+pone en rojo y más insistente. Se calcula solo, sumando lo que gastaste cada
+vez que elegiste seguir.
+
+## Patrones
+
+Con un mínimo de datos (tres veces o más), Registro te muestra si se repite
+algo: que compras más seguido en un estado de ánimo particular, o siempre en
+la misma franja del día — por ejemplo, «a la vuelta del laburo». Con una o
+dos veces no dice nada: es ruido, no un patrón.
+
+## Lugares donde se te escapa la plata
+
+También en Ajustes podés guardar un lugar —el kiosco, la panadería— estando
+ahí parado. Cada vez que abrís Frená cerca de un lugar guardado (a menos de
+150 metros), te avisa arriba de todo.
+
+Esto tiene un límite real y lo decimos en la propia app: **no puede
+avisarte caminando con la app cerrada**. Eso necesitaría permiso de
+ubicación en segundo plano, que los navegadores no les dan a los sitios
+web — ni deberían, es un problema de privacidad serio. Lo que sí hace: mira
+dónde estás cada vez que abrís la app, y sólo si ya le diste el permiso
+antes (nunca lo pide solo). La ubicación se guarda y se calcula enteramente
+en el celular; no sale de ahí.
+
 ## Que salte sola al abrir Mercado Pago
 
 Ninguna página web puede detectar qué otra app abriste — ningún sitio puede,

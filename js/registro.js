@@ -19,6 +19,7 @@ const Registro = (function(){
       ultimaApertura: 0,
       porDia: {},
       historial: [],
+      lugares: [],
       cfg: Object.assign({}, DEFAULTS)
     };
   }
@@ -56,12 +57,13 @@ const Registro = (function(){
     for(const k of ks.slice(0, ks.length - TOPE_DIAS)) delete d.porDia[k];
   }
 
-  function anotar(accion, que, monto){
+  function anotar(accion, que, monto, humor){
     d.historial.unshift({
       t: Date.now(),
       accion: accion,
       que: String(que || "").trim().slice(0, 80),
-      monto: monto || 0
+      monto: monto || 0,
+      humor: humor || ""
     });
     if(d.historial.length > TOPE_HISTORIAL) d.historial.length = TOPE_HISTORIAL;
   }
@@ -84,17 +86,17 @@ const Registro = (function(){
     return d.porDia[k] || 1;
   }
 
-  function frenar(que, monto){
+  function frenar(que, monto, humor){
     d.frenadas++;
     d.ahorro += (monto || 0);
-    anotar("freno", que, monto);
+    anotar("freno", que, monto, humor);
     guardar();
   }
 
-  function seguir(que, monto){
+  function seguir(que, monto, humor){
     d.seguidas++;
     d.graciaHasta = Date.now() + (d.cfg.gracia || 0) * 60000;
-    anotar("sigo", que, monto);
+    anotar("sigo", que, monto, humor);
     guardar();
   }
 
@@ -112,13 +114,25 @@ const Registro = (function(){
     return h.getTime() - dia * 86400000;
   }
 
+  function inicioMes(){
+    const h = new Date();
+    return new Date(h.getFullYear(), h.getMonth(), 1).getTime();
+  }
+
   function resumen(){
     const lunes = inicioSemana();
-    let frenadas = 0, ahorro = 0;
+    const mes = inicioMes();
+    let frenadas = 0, ahorro = 0, mesFrenadas = 0, mesAhorro = 0, gastadoSemana = 0;
     for(const r of d.historial){
-      if(r.t < lunes) break;                 // el historial va del más nuevo al más viejo
-      if(r.accion === "freno"){ frenadas++; ahorro += r.monto || 0; }
+      if(r.t < mes) break;                   // el historial va del más nuevo al más viejo
+      if(r.accion === "freno"){
+        mesFrenadas++; mesAhorro += r.monto || 0;
+        if(r.t >= lunes){ frenadas++; ahorro += r.monto || 0; }
+      }else if(r.accion === "sigo" && r.t >= lunes){
+        gastadoSemana += r.monto || 0;
+      }
     }
+    const presupuesto = d.cfg.presupuestoSemanal || 0;
     return {
       aperturas: d.aperturas,
       frenadas: d.frenadas,
@@ -126,8 +140,80 @@ const Registro = (function(){
       ahorro: d.ahorro,
       semanaFrenadas: frenadas,
       semanaAhorro: ahorro,
-      hoy: d.porDia[clave(Date.now())] || 0
+      mesFrenadas: mesFrenadas,
+      mesAhorro: mesAhorro,
+      hoy: d.porDia[clave(Date.now())] || 0,
+      presupuesto: presupuesto,
+      gastadoSemana: gastadoSemana,
+      restaPresupuesto: presupuesto > 0 ? presupuesto - gastadoSemana : null
     };
+  }
+
+  /* Patrones: sólo tienen sentido con un mínimo de datos — con una o dos
+     veces es ruido, no un patrón. Miran las últimas veces que SEGUISTE
+     (compraste), que es donde está el hábito que se quiere notar. */
+  const MINIMO_PATRON = 3;
+
+  function masFrecuente(lista){
+    const cuentas = {};
+    for(const v of lista) cuentas[v] = (cuentas[v] || 0) + 1;
+    let top = null;
+    for(const k in cuentas){
+      if(!top || cuentas[k] > cuentas[top]) top = k;
+    }
+    return top ? { valor: top, cuenta: cuentas[top], total: lista.length } : null;
+  }
+
+  function patronHumor(){
+    const vs = d.historial.filter(r => r.accion === "sigo" && r.humor).map(r => r.humor);
+    const m = masFrecuente(vs);
+    return (m && m.cuenta >= MINIMO_PATRON) ? m : null;
+  }
+
+  function patronFranja(){
+    const vs = d.historial.filter(r => r.accion === "sigo").map(r => franjaDe(r.t));
+    const m = masFrecuente(vs);
+    return (m && m.cuenta >= MINIMO_PATRON) ? m : null;
+  }
+
+  /* ---------- lugares ---------- */
+  /* Todo esto se guarda y se mide en el propio celular. La ubicación nunca
+     sale de acá — no hay a dónde mandarla, ni ganas de tenerla. */
+
+  function distanciaMetros(lat1, lng1, lat2, lng2){
+    const R = 6371000;
+    const rad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * rad;
+    const dLng = (lng2 - lng1) * rad;
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function agregarLugar(nombre, lat, lng){
+    const lugar = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      nombre: String(nombre || "").trim().slice(0, 40) || "Ese lugar",
+      lat: lat, lng: lng
+    };
+    d.lugares.push(lugar);
+    guardar();
+    return lugar;
+  }
+
+  function borrarLugar(id){
+    d.lugares = d.lugares.filter(l => l.id !== id);
+    guardar();
+  }
+
+  function listarLugares(){ return d.lugares; }
+
+  function cercaDe(lat, lng, radioM){
+    radioM = radioM || 150;
+    return d.lugares
+      .map(l => Object.assign({ distancia: distanciaMetros(lat, lng, l.lat, l.lng) }, l))
+      .filter(l => l.distancia <= radioM)
+      .sort((a, b) => a.distancia - b.distancia);
   }
 
   function cfg(){ return d.cfg; }
@@ -149,6 +235,9 @@ const Registro = (function(){
     enGracia: enGracia, minutosDeGracia: minutosDeGracia,
     cortarGracia: cortarGracia,
     resumen: resumen, historial: historial,
+    patronHumor: patronHumor, patronFranja: patronFranja,
+    agregarLugar: agregarLugar, borrarLugar: borrarLugar,
+    listarLugares: listarLugares, cercaDe: cercaDe,
     cfg: cfg, guardarCfg: guardarCfg, borrar: borrar
   };
 })();

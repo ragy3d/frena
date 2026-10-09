@@ -9,6 +9,7 @@ const App = (function(){
   let animacion = null;
   let listo = false;                   // ya pasó la espera
   let arranque = 0;
+  let humorActual = "";                // qué chip de humor está tocado, si hay
 
   /* ---------- plata ---------- */
 
@@ -22,6 +23,58 @@ const App = (function(){
 
   function plata(n){
     return "$" + Math.round(n || 0).toLocaleString("es-AR");
+  }
+
+  /* ---------- humor: el registro de un toque ---------- */
+
+  function pintarHumores(){
+    const cont = $("humores");
+    cont.innerHTML = "";
+    HUMORES.forEach(function(h){
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "humor";
+      b.dataset.id = h.id;
+      b.innerHTML = '<span class="humor-emoji">' + h.emoji + '</span>' + h.texto;
+      b.onclick = function(){
+        humorActual = (humorActual === h.id) ? "" : h.id;
+        actualizarHumores();
+      };
+      cont.appendChild(b);
+    });
+  }
+
+  function actualizarHumores(){
+    document.querySelectorAll(".humor").forEach(function(b){
+      b.classList.toggle("activo", b.dataset.id === humorActual);
+    });
+    $("planB").classList.toggle("oculto", humorActual !== "hambre");
+    if(humorActual === "hambre") $("planB").textContent = PLAN_B;
+  }
+
+  /* ---------- lugares cercanos ---------- */
+
+  /* Ninguna página puede avisarte caminando con la app cerrada — eso
+     necesitaría permiso de ubicación en segundo plano, que los navegadores
+     no les dan a los sitios web. Lo que sí se puede: mirar dónde estás cada
+     vez que abrís la app. Por eso esto se revisa acá, al entrar — no es una
+     alerta en tiempo real, es una revisada puntual. */
+  function revisarLugares(){
+    $("alertaLugar").classList.add("oculto");
+    if(!navigator.geolocation || !Registro.listarLugares().length) return;
+    if(!navigator.permissions || !navigator.permissions.query){
+      return;   // sin forma de chequear el permiso sin interrumpir, no se pide solo
+    }
+    navigator.permissions.query({ name: "geolocation" }).then(function(estado){
+      if(estado.state !== "granted") return;   // no se pide el permiso solo: sólo si ya se dio
+      navigator.geolocation.getCurrentPosition(function(pos){
+        const cerca = Registro.cercaDe(pos.coords.latitude, pos.coords.longitude);
+        if(!cerca.length) return;
+        const l = cerca[0];
+        $("alertaLugar").textContent = "📍 Estás cerca de «" + l.nombre + "». ¿Vas para ahí también?";
+        $("alertaLugar").classList.remove("oculto");
+      }, function(){}, { enableHighAccuracy: false, timeout: 6000, maximumAge: 120000 });
+    }).catch(function(){});
   }
 
   /* ---------- el destino ---------- */
@@ -128,6 +181,8 @@ const App = (function(){
     detener();
     cfg = Registro.cfg();
     listo = false;
+    humorActual = "";
+    actualizarHumores();
 
     $("repregunta").textContent =
       REPREGUNTAS[Math.floor(Math.random() * REPREGUNTAS.length)];
@@ -165,6 +220,7 @@ const App = (function(){
     if(Registro.enGracia()){ pantallaGracia(); return; }
     mostrar("pausa");
     nuevaPausa();
+    revisarLugares();
   }
 
   /* ---------- respuestas ---------- */
@@ -172,7 +228,7 @@ const App = (function(){
   function freno(){
     const monto = aNumero($("monto").value);
     const que = $("que").value;
-    Registro.frenar(que, monto);
+    Registro.frenar(que, monto, humorActual);
     detener();
 
     const r = Registro.resumen();
@@ -188,7 +244,7 @@ const App = (function(){
 
   function sigo(){
     if(!listo) return;
-    Registro.seguir($("que").value, aNumero($("monto").value));
+    Registro.seguir($("que").value, aNumero($("monto").value), humorActual);
     detener();
     if(!abrirDestino()){
       mostrar("ajustes");
@@ -196,10 +252,29 @@ const App = (function(){
     }
   }
 
+  /* Para "Agregar este lugar" en Ajustes: hay que estar ahí parado cuando se
+     toca el botón. Pide el permiso si hace falta — acá sí, porque es un
+     toque explícito del usuario, no algo que la app decide sola. */
+  function agregarLugarAqui(nombre, listo, error){
+    if(!navigator.geolocation){ error && error("Este navegador no tiene ubicación."); return; }
+    navigator.geolocation.getCurrentPosition(function(pos){
+      const l = Registro.agregarLugar(nombre, pos.coords.latitude, pos.coords.longitude);
+      listo && listo(l);
+    }, function(e){
+      const textos = {
+        1: "No diste el permiso de ubicación.",
+        2: "No se pudo ubicar — probá de nuevo con buena señal.",
+        3: "Tardó demasiado en ubicarte. Probá de nuevo."
+      };
+      error && error(textos[e.code] || "No se pudo guardar la ubicación.");
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+  }
+
   /* ---------- arranque ---------- */
 
   function iniciar(fnMostrar){
     mostrar = fnMostrar;
+    pintarHumores();
 
     $("frenoBtn").onclick = freno;
     $("sigoBtn").onclick = sigo;
@@ -232,6 +307,8 @@ const App = (function(){
     abrirDestino: abrirDestino,
     destino: destino,
     plata: plata,
-    detener: detener
+    detener: detener,
+    agregarLugarAqui: agregarLugarAqui,
+    revisarLugares: revisarLugares
   };
 })();

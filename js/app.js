@@ -99,41 +99,54 @@ const App = (function(){
   }
 
   /* Abrir otra app desde el navegador no tiene una forma única: en Android va
-     por intent://, en iPhone por el esquema propio de la app. Si no hay con
-     qué, queda el sitio web.
+     por un link profundo que la app acepte (ver DESTINOS en datos.js), en
+     iPhone por el esquema propio de la app.
 
-     En Android, un intent que sólo lleva "package" y ninguna acción no hace
-     match con nada del manifest de la app instalada — casi ningún componente
-     escucha un ACTION_VIEW sin datos. Chrome entonces no encuentra la app y
-     va directo al fallback: por eso llegabas al sitio web y no a la app de
-     verdad. Pidiendo MAIN + LAUNCHER se apunta directo a la pantalla
-     principal de la app, que es lo que cualquier app instalada declara. */
+     El respaldo en Android es la Play Store y no la web: en la ficha de una
+     app instalada aparece «Abrir», que sí la abre de verdad. La web te dejaba
+     en Mercado Pago del navegador, que no es lo que se quería. */
+  function saltoElegido(d){
+    if(!d.saltos) return null;
+    return d.saltos.find(s => s.id === cfg.saltoAndroid) || d.saltos[0];
+  }
+
+  function tiendaDe(d){
+    return d.paquete ? "market://details?id=" + d.paquete : "";
+  }
+
   function urlDeSalto(android){
     const d = destino();
-    if(android && d.paquete){
-      let u = "intent:#Intent;package=" + d.paquete +
-              ";action=android.intent.action.MAIN" +
-              ";category=android.intent.category.LAUNCHER;";
-      if(d.web) u += "S.browser_fallback_url=" + encodeURIComponent(d.web) + ";";
-      return u + "end";
+    if(android){
+      const s = saltoElegido(d);
+      if(s) return s.url;
+      // "otra app": con esquema y paquete se arma el link profundo; con
+      // paquete solo, lo único seguro es la Play Store
+      const m = /^([a-z][\w+.-]*):\/\/(.*)$/i.exec(d.esquema || "");
+      if(d.paquete && m){
+        return "intent://" + m[2] + "#Intent;scheme=" + m[1] +
+               ";package=" + d.paquete + ";end";
+      }
+      if(d.paquete) return tiendaDe(d);
     }
     return d.esquema || d.web || "";
   }
 
-  function abrirDestino(){
+  /* sinRespaldo: para «Probar el botón» — si la forma elegida no abre la app,
+     que se note, en vez de taparlo saltando a otro lado. */
+  function abrirDestino(sinRespaldo){
     const android = esAndroid();
     const u = urlDeSalto(android);
     if(!u) return false;
 
     const d = destino();
+    const respaldo = android ? (tiendaDe(d) || d.web) : d.web;
     const antes = Date.now();
     location.href = u;
 
-    // si en un segundo y medio seguimos en esta pestaña, no pasó nada:
-    // probamos con el sitio web como último recurso
-    if(d.web && u !== d.web){
+    // si en un segundo y medio seguimos en esta pestaña, la app no abrió
+    if(!sinRespaldo && respaldo && respaldo !== u){
       setTimeout(function(){
-        if(!document.hidden && Date.now() - antes < 2600) location.href = d.web;
+        if(!document.hidden && Date.now() - antes < 2600) location.href = respaldo;
       }, 1500);
     }
     return true;
@@ -308,6 +321,7 @@ const App = (function(){
     destino: destino,
     plata: plata,
     detener: detener,
+    urlDeSalto: urlDeSalto,
     agregarLugarAqui: agregarLugarAqui,
     revisarLugares: revisarLugares
   };

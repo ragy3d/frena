@@ -166,6 +166,25 @@ const UI = (function(){
     });
   }
 
+  /* ---------- formas de abrir la app (Android) ---------- */
+
+  function pintarSaltos(){
+    const c = Registro.cfg();
+    const d = DESTINOS[c.destino];
+    const sel = $("cfgSalto");
+    if(!d || !d.saltos){ $("cajaSalto").classList.add("oculto"); return; }
+    $("cajaSalto").classList.remove("oculto");
+    sel.innerHTML = "";
+    d.saltos.forEach(function(s){
+      const o = document.createElement("option");
+      o.value = s.id;
+      o.textContent = s.texto;
+      sel.appendChild(o);
+    });
+    const elegido = d.saltos.find(s => s.id === c.saltoAndroid) || d.saltos[0];
+    sel.value = elegido.id;
+  }
+
   /* ---------- ajustes ---------- */
 
   function enlaceApp(){
@@ -185,6 +204,7 @@ const UI = (function(){
     $("cfgPaquete").value = c.paquete || "";
     $("cfgEnlace").value = c.enlace || "";
     $("cajaOtra").classList.toggle("oculto", c.destino !== "otra");
+    pintarSaltos();
     $("linkAndroid").textContent = enlaceApp();
     $("linkIos").textContent = enlaceApp();
     pintarLugares();
@@ -229,13 +249,17 @@ const UI = (function(){
     $("cfgDestino").onchange = function(){
       Registro.guardarCfg({ destino: this.value });
       $("cajaOtra").classList.toggle("oculto", this.value !== "otra");
+      pintarSaltos();
+    };
+    $("cfgSalto").onchange = function(){
+      Registro.guardarCfg({ saltoAndroid: this.value });
     };
     $("cfgNombre").oninput = function(){ Registro.guardarCfg({ nombre: this.value }); };
     $("cfgPaquete").oninput = function(){ Registro.guardarCfg({ paquete: this.value }); };
     $("cfgEnlace").oninput = function(){ Registro.guardarCfg({ enlace: this.value }); };
 
     $("probarBtn").onclick = function(){
-      if(!App.abrirDestino()) avisar("Falta el paquete o el link de la app.");
+      if(!App.abrirDestino(true)) avisar("Falta el paquete o el link de la app.");
     };
 
     $("copiarLink").onclick = function(){

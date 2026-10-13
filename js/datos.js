@@ -8,6 +8,7 @@ const DEFAULTS = {
   paquete: "",         // sólo para destino "otra"
   enlace: "",          // sólo para destino "otra"
   preguntarMonto: true,
+  saltoAndroid: "",       // qué forma de abrir la app usar ("" = la primera)
   presupuestoSemanal: 0   // 0 = apagado
 };
 
@@ -40,21 +41,45 @@ function franjaDe(t){
   return (FRANJAS.find(f => h >= f.desde && h < f.hasta) || FRANJAS[0]).texto;
 }
 
-/* Para abrir otra app desde el navegador hay dos caminos y ninguno es
-   universal: en Android un intent:// con el nombre del paquete, en iPhone el
-   esquema propio de la app. Si los dos fallan, queda el sitio web. */
+/* En Android, Chrome sólo deja abrir una app si la entrada que se le pide
+   acepta venir del navegador (las que tienen BROWSABLE en el manifest). La
+   pantalla principal de la app casi nunca la tiene: por eso un intent a
+   MAIN/LAUNCHER cae siempre a la web. Hay que entrar por un link profundo, y
+   cuál acepta cada app no está publicado — así que hay varias formas para
+   probar desde el celular, y se usa la que ande. La Play Store es la última:
+   son dos toques (aparece «Abrir»), pero anda siempre. */
 const DESTINOS = {
   mercadopago: {
     nombre: "Mercado Pago",
     paquete: "com.mercadopago.wallet",
     esquema: "mercadopago://",
-    web: "https://www.mercadopago.com.ar/"
+    web: "https://www.mercadopago.com.ar/",
+    saltos: [
+      { id: "esquema-paquete", texto: "1 · Esquema de la app",
+        url: "intent://home#Intent;scheme=mercadopago;package=com.mercadopago.wallet;end" },
+      { id: "esquema", texto: "2 · Esquema directo",
+        url: "mercadopago://home" },
+      { id: "link", texto: "3 · Link de la app",
+        url: "intent://www.mercadopago.com.ar/#Intent;scheme=https;package=com.mercadopago.wallet;end" },
+      { id: "tienda", texto: "4 · Por la Play Store (2 toques, anda siempre)",
+        url: "market://details?id=com.mercadopago.wallet" }
+    ]
   },
   mercadolibre: {
     nombre: "Mercado Libre",
     paquete: "com.mercadolibre",
     esquema: "meli://",
-    web: "https://www.mercadolibre.com.ar/"
+    web: "https://www.mercadolibre.com.ar/",
+    saltos: [
+      { id: "esquema-paquete", texto: "1 · Esquema de la app",
+        url: "intent://home#Intent;scheme=meli;package=com.mercadolibre;end" },
+      { id: "esquema", texto: "2 · Esquema directo",
+        url: "meli://home" },
+      { id: "link", texto: "3 · Link de la app",
+        url: "intent://www.mercadolibre.com.ar/#Intent;scheme=https;package=com.mercadolibre;end" },
+      { id: "tienda", texto: "4 · Por la Play Store (2 toques, anda siempre)",
+        url: "market://details?id=com.mercadolibre" }
+    ]
   },
   otra: { nombre: "la app", paquete: "", esquema: "", web: "" }
 };

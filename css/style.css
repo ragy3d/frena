@@ -15,9 +15,14 @@
 
 *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-html,body{ height:100%; }
+/* body con min-height y no height: con la altura fija, el padding de abajo
+   (el lugar de la barra de pestañas) quedaba dentro de la pantalla y no se
+   sumaba al final del contenido — no se podía bajar lo suficiente y el
+   botón de seguir quedaba tapado por la barra. */
+html{ height:100%; }
 
 body{
+  min-height:100%;
   margin:0;
   background:var(--fondo);
   color:var(--texto);
@@ -310,6 +315,21 @@ body{
 
 @media (min-width:560px){
   .pregunta{ font-size:31px; }
+}
+
+/* celulares bajos: la pausa tiene que entrar casi entera sin bajar */
+@media (max-height:800px){
+  .cab{ margin-bottom:10px; }
+  .pregunta{ font-size:24px; }
+  .repregunta{ margin-top:8px; font-size:15px; }
+  .reloj{ width:112px; height:112px; margin:14px auto 14px; }
+  .segundos{ font-size:34px; }
+  .reloj.fin .segundos{ font-size:28px; }
+  .campos{ gap:8px; margin-bottom:12px; }
+  .campos input{ padding-top:12px; padding-bottom:12px; }   /* sin tocar los costados: ahí va el "$" */
+  .humor{ padding:7px 4px; }
+  .humor-emoji{ font-size:18px; }
+  .btn-no,.btn-si{ padding:14px; }
 }
 
 /* número de versión en Ajustes: para confirmar que llegó la actualización */

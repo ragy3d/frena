@@ -1,7 +1,7 @@
 /* Service worker de Frená: la hace instalable y la deja andar sin internet
    — que es justo lo que hace falta, porque la pausa tiene que aparecer sí o
    sí. Va a la red primero para que una versión nueva llegue sola. */
-const CACHE = "frena-v5";
+const CACHE = "frena-v6";
 const ASSETS = [
   "./", "./index.html", "./manifest.json",
   "./css/style.css",

@@ -311,3 +311,9 @@ body{
 @media (min-width:560px){
   .pregunta{ font-size:31px; }
 }
+
+/* número de versión en Ajustes: para confirmar que llegó la actualización */
+.ver{
+  font-size:12px; color:var(--tenue); border:1px solid var(--borde);
+  border-radius:999px; padding:3px 10px;
+}

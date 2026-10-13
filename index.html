@@ -126,7 +126,7 @@
 
 <!-- ================= AJUSTES ================= -->
 <section class="pantalla oculto" data-p="ajustes">
-  <header class="cab"><span class="marca">Ajustes</span></header>
+  <header class="cab"><span class="marca">Ajustes</span><span class="ver">v3</span></header>
 
   <label class="fila">
     <span>Segundos de espera<small id="valSegundos">15 s</small></span>
@@ -182,15 +182,36 @@
   </div>
   <button id="probarBtn" class="btn-texto">Probar el botón</button>
 
-  <h2 class="titulillo">Que salte solo al abrir Mercado Pago</h2>
+  <h2 class="titulillo">Que salte siempre antes de Mercado Pago</h2>
   <p class="micro">Esta app sola no puede espiar qué otras apps abrís — ningún
-    sitio web puede, y está bien que sea así. Lo que sí se puede es que el
-    celular la abra automáticamente. Se configura una vez:</p>
+    sitio web puede, y está bien que sea así. Hay dos formas de que la pausa
+    aparezca igual:</p>
+
+  <details class="guia" open>
+    <summary>✋ Gratis, sin instalar nada: cambiá el ícono</summary>
+    <ol>
+      <li>Instalá Frená con el botón <b>Instalar</b> de arriba (o menú ⋮ →
+        «Instalar aplicación»).</li>
+      <li>En la pantalla de inicio, mantené apretado el ícono de
+        <b>Mercado Pago</b> → <b>«Quitar de inicio»</b> o «Eliminar
+        acceso directo».<br><b>Ojo:</b> si la única opción que te da es
+        «Desinstalar», no la toques — en ese caso arrastrá Mercado Pago a una
+        carpeta en la última pantalla.</li>
+      <li>Poné <b>Frená</b> justo donde estaba Mercado Pago.</li>
+      <li>Listo: el dedo va solo a ese lugar, pasás por la pausa, y
+        «Sí, abrir Mercado Pago» te lleva a la app.</li>
+    </ol>
+    <p class="micro">Mercado Pago sigue instalado: si entrás desde una
+      notificación o el cajón de apps, no pasa por Frená. Esto funciona por
+      costumbre, no por fuerza.</p>
+  </details>
 
   <details class="guia">
-    <summary>🤖 Android</summary>
+    <summary>🤖 Android, automático (MacroDroid)</summary>
+    <p class="micro">Salta incluso entrando desde notificaciones, pero la
+      versión gratis de MacroDroid tiene límites y puede pedirte pagar.</p>
     <ol>
-      <li>Instalá <b>MacroDroid</b> de la Play Store (es gratis).</li>
+      <li>Instalá <b>MacroDroid</b> de la Play Store.</li>
       <li><b>Agregar macro</b> → Disparador → <b>Aplicaciones</b> →
         «Aplicación iniciada/cerrada» → elegí <b>Mercado Pago</b> → Iniciada.</li>
       <li>Acción → Aplicaciones → <b>Abrir sitio web</b> → pegá:

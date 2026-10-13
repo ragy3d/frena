@@ -1,7 +1,7 @@
 /* Service worker de Frená: la hace instalable y la deja andar sin internet
    — que es justo lo que hace falta, porque la pausa tiene que aparecer sí o
    sí. Va a la red primero para que una versión nueva llegue sola. */
-const CACHE = "frena-v4";
+const CACHE = "frena-v5";
 const ASSETS = [
   "./", "./index.html", "./manifest.json",
   "./css/style.css",
@@ -12,7 +12,11 @@ const ASSETS = [
 
 self.addEventListener("install", e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    // cache:"reload" para no guardar como versión nueva una copia vieja
+    // que el navegador tenía de antes
+    caches.open(CACHE)
+      .then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: "reload" }))))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -26,8 +30,16 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   if(e.request.method !== "GET") return;
+  /* GitHub Pages manda max-age=600: sin esto, "ir a la red" igual podía
+     devolver la copia que el navegador guardó hace menos de diez minutos, y
+     una versión nueva no aparecía al reabrir. Con no-cache se le pregunta
+     siempre al servidor; si nada cambió contesta 304 y no se baja de nuevo.
+     (Se pide por la URL y no clonando el Request: un pedido de navegación no
+     se puede reconstruir con opciones.) */
+  const propio = new URL(e.request.url).origin === self.location.origin;
+  const pedido = propio ? fetch(e.request.url, { cache: "no-cache" }) : fetch(e.request);
   e.respondWith(
-    fetch(e.request)
+    pedido
       .then(r => {
         const copia = r.clone();
         caches.open(CACHE).then(c => c.put(e.request, copia)).catch(() => {});

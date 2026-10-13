@@ -308,6 +308,28 @@ const UI = (function(){
     });
 
     if("serviceWorker" in navigator){
+      /* Cuando llega una versión nueva, el service worker nuevo toma el
+         control con la página vieja ya abierta: se recarga una vez para que
+         se vea la nueva sin tener que cerrar y abrir. Sólo si ya había uno —
+         la primera instalación también dispara este evento y ahí no hace
+         falta recargar nada. */
+      const habiaUno = !!navigator.serviceWorker.controller;
+      let recargado = false;
+      navigator.serviceWorker.addEventListener("controllerchange", function(){
+        if(!habiaUno || recargado) return;
+        recargado = true;
+        location.reload();
+      });
+
+      // la app instalada suele quedar en recientes sin recargarse: al volver
+      // a ella, también se fija si hay versión nueva
+      document.addEventListener("visibilitychange", function(){
+        if(document.hidden) return;
+        navigator.serviceWorker.getRegistration()
+          .then(function(r){ if(r) r.update(); })
+          .catch(function(){});
+      });
+
       navigator.serviceWorker.register("sw.js").catch(function(){});
     }
   }
